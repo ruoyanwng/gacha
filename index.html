@@ -164,7 +164,7 @@
     <button class="icon-btn" id="themeToggle" title="切換夜間模式">🌙</button>
   </div>
 </div>
-<p class="small">⚠️ 數據已自動保存至當前設備。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
+<p class="small">⚠️ 數據存當前設備瀏覽器。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
 
 <div class="card">
   <div class="toolbar">
@@ -217,19 +217,22 @@
   </div>
 </div>
 
-<!-- 備份恢復彈窗 -->
+<!-- 備份恢復彈窗 (全新排版) -->
 <div class="modal-overlay" id="backupModal">
   <div class="modal-content">
     <h3 style="margin-bottom:16px;">數據備份與恢復</h3>
-    <div class="actions" style="flex-direction:column; gap:12px; margin-bottom:16px;">
+    
+    <div style="margin-bottom:20px;">
       <button class="primary" id="doBackupBtn" style="width:100%">📤 複製備份碼</button>
-      <button class="ghost" id="openRestoreBtn" style="width:100%">📥 粘貼恢復數據</button>
     </div>
-    <div id="restoreArea" style="display:none; margin-bottom:16px;">
-      <textarea id="restoreInput" placeholder="請在此處粘貼您的備份碼..." style="height:100px;"></textarea>
+
+    <div style="border-top:1px dashed var(--line); padding-top:16px;">
+      <p style="font-size:12px; color:var(--text-muted); margin-top:0; margin-bottom:8px;">若要恢復數據，請將備份碼粘貼至此：</p>
+      <textarea id="restoreInput" placeholder="請在此處長按粘貼..." style="height:100px; margin-bottom:10px;"></textarea>
       <button class="danger" id="doRestoreBtn" style="width:100%">確認覆蓋並恢復</button>
     </div>
-    <div class="actions">
+
+    <div class="actions" style="margin-top:16px;">
       <button class="ghost" id="cancelBackupBtn" style="width:100%">關閉</button>
     </div>
   </div>
@@ -459,13 +462,11 @@ function render(){
 
 /* --- 備份與恢復邏輯 --- */
 const backupModal = document.getElementById('backupModal');
-const restoreArea = document.getElementById('restoreArea');
 const restoreInput = document.getElementById('restoreInput');
 
 document.getElementById('backupBtn').onclick = () => {
   backupModal.classList.add('active');
-  restoreArea.style.display = 'none';
-  restoreInput.value = '';
+  restoreInput.value = ''; // 每次打開清空上次的內容
 };
 
 document.getElementById('cancelBackupBtn').onclick = () => {
@@ -477,31 +478,23 @@ backupModal.addEventListener('click', e => {
 });
 
 document.getElementById('doBackupBtn').onclick = async () => {
-  // 將整個 state 轉成字串
   const backupStr = JSON.stringify(state);
   try {
     await navigator.clipboard.writeText(backupStr);
-    alert('✅ 備份成功！\n\n請立即打開微信或備忘錄，找個聊天框或新建一條筆記，將它【粘貼並發送】保存。\n（以後換手機或清緩存了，把這段文字複製回來這裡點恢復即可）');
+    alert('✅ 備份成功！\n\n請立即打開微信或備忘錄，找個聊天框或新建一條筆記，將它【粘貼並發送】保存。\n（以後換手機或清緩存了，把這段文字複製回來貼在輸入框即可）');
     backupModal.classList.remove('active');
   } catch (err) {
-    // 如果系統不允許直接寫入剪貼板（某些限制），則彈出讓用戶手動複製
     prompt('系統無法自動複製，請長按全選並複製下面的備份碼：', backupStr);
   }
 };
 
-document.getElementById('openRestoreBtn').onclick = () => {
-  restoreArea.style.display = 'block';
-  restoreInput.focus();
-};
-
 document.getElementById('doRestoreBtn').onclick = () => {
   const str = restoreInput.value.trim();
-  if (!str) { alert('請先粘貼備份碼！'); return; }
+  if (!str) { alert('請先在輸入框內粘貼備份碼！'); return; }
 
   try {
     const parsedData = JSON.parse(str);
     
-    // 簡單的安全檢查
     if (!parsedData || !Array.isArray(parsedData.records)) {
       throw new Error('格式不正確');
     }
@@ -510,7 +503,6 @@ document.getElementById('doRestoreBtn').onclick = () => {
       state = parsedData;
       if (!Array.isArray(state.customGames)) state.customGames = [];
       
-      // 補全 ID
       state.records.forEach(r => {
         if (!r.id) r.id = uid();
       });
