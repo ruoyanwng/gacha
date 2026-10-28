@@ -9,52 +9,77 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="抽卡">
 <style>
-  :root{--bg:#f6f7fb;--card:#fff;--line:#e3e5ec;--accent:#4b6ef5;--danger:#c0392b}
+  /* --- 顏色變量：預設白天模式 --- */
+  :root {
+    --bg: #f6f7fb; --card: #fff; --line: #e3e5ec; --text: #1f2430;
+    --text-muted: #6b7280; --accent: #4b6ef5; --accent-text: #fff;
+    --danger: #c0392b; --danger-bg: #fff5f4; --danger-line: #f5c9c2;
+    --btn-ghost: #f0f2f8; --input-bg: #fff; --stepper-btn: #f0f2f8;
+    --note-bg: #f8f9fc;
+    --pity-small-bg: #ecfdf5; --pity-small-text: #065f46; --pity-small-line: #a7f3d0;
+    --pity-big-bg: #fef3c7; --pity-big-text: #92400e; --pity-big-line: #fde68a;
+  }
+
+  /* --- 顏色變量：夜間模式 --- */
+  body.dark-mode {
+    --bg: #121212; --card: #1e1e1e; --line: #333333; --text: #e0e0e0;
+    --text-muted: #888888; --accent: #6b8cff; --accent-text: #fff;
+    --danger: #ff6b6b; --danger-bg: #331a1a; --danger-line: #552222;
+    --btn-ghost: #2a2a2a; --input-bg: #2a2a2a; --stepper-btn: #2a2a2a;
+    --note-bg: #2a2a2a;
+    --pity-small-bg: #1a3326; --pity-small-text: #6ee7b7; --pity-small-line: #2b593f;
+    --pity-big-bg: #3b2a12; --pity-big-text: #fcd34d; --pity-big-line: #5e3e12;
+  }
+
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
        font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-       background:var(--bg);color:#1f2430;font-size:15px;line-height:1.5}
-  h1{font-size:20px;margin:0 0 6px}
-  h2{font-size:16px;margin:0 0 10px}
-  .small{font-size:12px;color:#6b7280}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
-        padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-  label{display:flex;flex-direction:column;font-size:13px;gap:6px;color:#4a5162}
+       background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;
+       transition: background-color 0.3s, color 0.3s;}
   
-  /* 統一輸入框樣式 */
+  .header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;}
+  h1{font-size:20px;margin:0;}
+  .theme-toggle { background: var(--btn-ghost); color: var(--text); border: 1px solid var(--line); padding: 4px 10px; border-radius: 20px; font-size: 16px; }
+  
+  h2{font-size:16px;margin:0 0 10px}
+  .small{font-size:12px;color:var(--text-muted); margin-top:0; margin-bottom:12px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03);
+        transition: background-color 0.3s, border-color 0.3s;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  label{display:flex;flex-direction:column;font-size:13px;gap:6px;color:var(--text-muted)}
+  
   input,select,button,textarea{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;
-               background:#fff;color:#1f2430;appearance:none}
+               background:var(--input-bg);color:var(--text);appearance:none; transition: background-color 0.3s, color 0.3s;}
+  
   select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
   input:focus,select:focus,textarea:focus{outline:2px solid rgba(75,110,245,.35);outline-offset:1px}
   
   button{cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform .05s}
   button:active{transform:scale(.97)}
-  button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
-  button.danger{background:#fff5f4;color:var(--danger);border-color:#f5c9c2}
-  button.ghost{background:#f0f2f8;color:#4a5162;}
+  button.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:600}
+  button.danger{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-line)}
+  button.ghost{background:var(--btn-ghost);color:var(--text); border-color:var(--line);}
   .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .toolbar-actions{display:flex;gap:8px}
   
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
   th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-  th{font-size:12px;color:#6b7280;font-weight:600;white-space:nowrap}
+  th{font-size:12px;color:var(--text-muted);font-weight:600;white-space:nowrap}
   
-  .editable-text { cursor: pointer; border-bottom: 1px dashed transparent; }
-  .editable-text:hover { border-bottom-color: #aaa; color: var(--accent); }
-  .editable-text:active { color: var(--accent); }
-
   .stepper{display:flex;align-items:center;gap:2px}
-  .stepper button{padding:0;width:28px;height:28px;display:flex;justify-content:center;align-items:center;
-                  border-radius:6px;background:#f0f2f8;border:1px solid var(--line);font-weight:bold;color:#4a5162}
-  .stepper button:active{background:#e2e5ef}
-  .stepper input{width:46px;text-align:center;padding:4px;border:none;background:transparent;
-                 font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px solid transparent}
-  .stepper input:focus{border-bottom-color:var(--accent);outline:none;background:#f8f9fc}
+  .stepper button{padding:0;height:28px;display:flex;justify-content:center;align-items:center;
+                  border-radius:6px;background:var(--stepper-btn);border:1px solid var(--line);font-weight:bold;color:var(--text-muted);}
+  .stepper button:active{background:var(--line)}
+  .stepper button.btn-step-1 { width: 24px; font-size: 16px; }
+  .stepper button.btn-step-10 { width: 32px; font-size: 11px; font-weight: 600; }
+  .stepper input{width:38px;text-align:center;padding:4px 0;border:none;background:transparent;
+                 font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px solid transparent; font-size: 14px;}
+  .stepper input:focus{border-bottom-color:var(--accent);outline:none;background:var(--note-bg)}
   
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -63,110 +88,81 @@
   .row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
   .row-actions button{padding:6px 10px;font-size:12px;border-radius:8px;min-width:65px;text-align:center;white-space:nowrap;}
   
-  .btn-small-pity{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
-  .btn-big-pity{background:#fef3c7;color:#92400e;border-color:#fde68a;font-weight:bold;}
+  .btn-small-pity{background:var(--pity-small-bg);color:var(--pity-small-text);border-color:var(--pity-small-line);}
+  .btn-big-pity{background:var(--pity-big-bg);color:var(--pity-big-text);border-color:var(--pity-big-line);font-weight:bold;}
   
   .note-display {
-    width: 80px; max-width: 80px;
+    width: 70px; max-width: 70px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    cursor: pointer; color: #666; font-size: 13px;
+    cursor: pointer; color:var(--text-muted); font-size: 13px;
     border-bottom: 1px dashed transparent; padding: 4px 0;
   }
-  .note-display:hover { border-bottom-color: #aaa; color: var(--accent); }
-  .note-display:empty::before { content: '點擊輸入'; color: #bbb; font-style: italic; }
+  .note-display:hover { border-bottom-color: var(--text-muted); color: var(--accent); }
+  .note-display:empty::before { content: '點擊輸入'; color: var(--text-muted); opacity:0.6; font-style: italic; }
 
-  .empty{padding:24px;text-align:center;color:#8a93a6}
+  .empty{padding:24px;text-align:center;color:var(--text-muted)}
 
-  tr.selected-row { background-color: #fff0f0 !important; }
-  tr.selected-row td { color: #c0392b; }
+  tr.selected-row { background-color: var(--danger-bg) !important; }
+  tr.selected-row td { color: var(--danger); }
   tr[data-act="selectRow"] input,
   tr[data-act="selectRow"] button { pointer-events: none; opacity: 0.7; }
 
   .drag-handle {
-    cursor: grab; font-size: 22px; color: #9ca3af; text-align: center;
+    cursor: grab; font-size: 22px; color: var(--text-muted); text-align: center;
     width: 30px; touch-action: none; user-select: none;
   }
   .drag-handle:active { cursor: grabbing; }
   tr.dragging { 
-    opacity: 0.9; background-color: #fff !important; 
+    opacity: 0.9; background-color: var(--card) !important; 
     box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: scale(1.02); z-index: 10; position: relative;
   }
 
-  /* 彈出視窗樣式 */
   .modal-overlay {
     position: fixed; top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000;
+    background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000;
     padding: 20px;
   }
   .modal-overlay.active { display: flex; }
   .modal-content {
-    background: #fff; padding: 20px; border-radius: 16px; width: 100%; max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: var(--card); padding: 20px; border-radius: 16px; width: 100%; max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--line);
     animation: popIn 0.2s ease-out;
   }
   @keyframes popIn {
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
-  .modal-content h3 { margin: 0 0 12px; font-size: 16px; color: #333; display:flex; justify-content:space-between; align-items:flex-end;}
-  .modal-content .char-count { font-size: 12px; color: #999; font-weight: normal; }
+  .modal-content h3 { margin: 0 0 12px; font-size: 16px; color: var(--text); display:flex; justify-content:space-between; align-items:flex-end;}
+  .modal-content .char-count { font-size: 12px; color: var(--text-muted); font-weight: normal; }
   .modal-content textarea {
     width: 100%; height: 120px; resize: none; margin-bottom: 16px; 
-    padding: 12px; font-size: 15px; background: #f8f9fc;
+    padding: 12px; font-size: 15px; background: var(--note-bg); color: var(--text); border: 1px solid var(--line);
   }
   .modal-content .actions { justify-content: flex-end; }
 
-  /* 新增表單的標籤排版 */
   .flex-label { display: flex; justify-content: space-between; flex-direction: row; align-items: center; margin-bottom: -2px;}
-  .flex-label span:last-child { font-size: 12px; color: #999; }
+  .flex-label span:last-child { font-size: 12px; color: var(--text-muted); }
 
   @media(max-width:520px){
     body{padding:12px}
     .grid{grid-template-columns:1fr 1fr}
     th,td{padding:8px 4px;font-size:13px}
-    .stepper button{width:26px;height:26px;}
-    .stepper input{width:36px;}
+    .stepper button.btn-step-1 { width: 22px; height: 26px; font-size: 14px;}
+    .stepper button.btn-step-10 { width: 28px; height: 26px; font-size: 10px;}
+    .stepper input{width:32px; font-size: 13px;}
     .row-actions button{min-width:56px; padding:6px 4px;}
     .drag-handle{ width: 24px; font-size: 18px;}
-    .note-display{ width: 60px; max-width: 60px; }
+    .note-display{ width: 50px; max-width: 50px; }
   }
 </style>
 </head>
 <body>
 
-<h1>抽卡记录</h1>
-<p class="small">数据保存在本机浏览器。</p>
-
-<div class="card">
-  <h2>新增记录</h2>
-  <div class="grid">
-    <label>游戏
-      <input id="gameInput" placeholder="請輸入文本">
-    </label>
-    <label>卡池
-      <select id="poolSelect">
-        <option value="限定">限定</option>
-        <option value="常驻">常驻</option>
-        <option value="武器/光锥">武器/光锥</option>
-        <option value="联动">联动</option>
-        <option value="自定义...">自定义...</option>
-      </select>
-    </label>
-    
-    <!-- 這裡加上了字數統計 -->
-    <label style="grid-column:1/-1">
-      <div class="flex-label">
-        <span>备注</span>
-        <span id="addNoteCharCount">0 / 30</span>
-      </div>
-      <input id="noteInput" placeholder="請輸入文本" maxlength="30">
-    </label>
-    
-  </div>
-  <div class="actions" style="margin-top:10px">
-    <button class="primary" id="addRecordBtn">添加记录</button>
-  </div>
+<div class="header-wrap">
+  <h1>抽卡记录</h1>
+  <button class="theme-toggle" id="themeToggle" title="切換夜間模式">🌙</button>
 </div>
+<p class="small">数据保存在本机浏览器。</p>
 
 <div class="card">
   <div class="toolbar">
@@ -176,6 +172,34 @@
   <div id="list"></div>
 </div>
 
+<!-- 新增記錄彈窗 -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-content">
+    <h3 style="margin-bottom:16px;">新增記錄</h3>
+    <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom:16px;">
+      
+      <label style="grid-column:1/-1">游戏
+        <select id="gameSelect"></select>
+      </label>
+      
+      <label style="grid-column:1/-1">卡池
+        <select id="poolSelect"></select>
+      </label>
+      <label style="grid-column:1/-1">
+        <div class="flex-label">
+          <span>备注</span>
+          <span id="addNoteCharCount">0 / 30</span>
+        </div>
+        <input id="noteInput" placeholder="點擊輸入" maxlength="30">
+      </label>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="cancelAddBtn">取消</button>
+      <button class="primary" id="addRecordBtn">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- 備註編輯彈窗 -->
 <div class="modal-overlay" id="noteModal">
   <div class="modal-content">
@@ -183,7 +207,7 @@
       編輯備註
       <span class="char-count" id="noteCharCount">0 / 30</span>
     </h3>
-    <textarea id="modalNoteInput" placeholder="點擊輸入詳細備註..." maxlength="30"></textarea>
+    <textarea id="modalNoteInput" placeholder="點擊輸入" maxlength="30"></textarea>
     <div class="actions">
       <button class="ghost" id="cancelNoteBtn">取消</button>
       <button class="primary" id="saveNoteBtn">保存</button>
@@ -193,8 +217,34 @@
 
 <script>
 const KEY = 'gacha_records_v2'; 
+const THEME_KEY = 'gacha_theme';
 const MAX_NOTE_LENGTH = 30;
 
+/* --- 夜間模式切換邏輯 --- */
+const themeToggle = document.getElementById('themeToggle');
+let isDarkMode = localStorage.getItem(THEME_KEY) === 'dark';
+
+function applyTheme() {
+  if (isDarkMode) {
+    document.body.classList.add('dark-mode');
+    themeToggle.textContent = '☀️';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#1e1e1e');
+  } else {
+    document.body.classList.remove('dark-mode');
+    themeToggle.textContent = '🌙';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#4b6ef5');
+  }
+}
+
+themeToggle.onclick = () => {
+  isDarkMode = !isDarkMode;
+  localStorage.setItem(THEME_KEY, isDarkMode ? 'dark' : 'light');
+  applyTheme();
+};
+
+applyTheme();
+
+/* --- 核心數據邏輯 --- */
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, m => ({
@@ -205,13 +255,12 @@ function escapeHtml(s){
 let state;
 try { state = JSON.parse(localStorage.getItem(KEY)); } catch(e){ state = null; }
 if (!state || !Array.isArray(state.records)) {
-  state = { games: [], records: [] };
+  state = { customGames: [], records: [] };
 }
+if (!Array.isArray(state.customGames)) state.customGames = [];
+
 state.records.forEach(r => {
   if (!r.id) r.id = uid();
-  r.pulls = Number(r.pulls) || 0;
-  if (typeof r.note !== 'string') r.note = '';
-  if (!r.pity || r.pity === 'none') r.pity = 'small';
 });
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -220,6 +269,91 @@ let isDeleting = false;
 let isSorting = false;
 let selectedIds = new Set();
 let editingNoteId = null;
+
+/* --- 智能判斷保底上限 --- */
+function getMaxPity(r) {
+  const gameName = r.game || '';
+  const poolName = r.pool || '';
+
+  // 1. 明日方舟：终末地
+  if (gameName.includes('終末地') || gameName.includes('终末地')) {
+    if (poolName.includes('军械') || poolName.includes('軍械') || poolName.includes('武器') || poolName.includes('武装') || poolName.includes('武裝')) {
+      return 80; // 武器大保底 80
+    }
+    return 120; // 角色大保底 120
+  }
+
+  // 2. 鸣潮
+  if (gameName.includes('鳴潮') || gameName.includes('鸣潮')) {
+    return 80; // 鸣潮所有池子 80 保底
+  }
+
+  // 3. 其他游戏
+  const isWeapon = ['武器', '光錐', '光锥', '音擎', '弧盤', '弧盘'].some(w => poolName.includes(w));
+  if (isWeapon) {
+    return 80; // 其他游戏武器池 80 保底
+  }
+  
+  return 90; // 其他游戏角色/常驻池默认 90
+}
+
+/* --- 動態渲染遊戲下拉選單 --- */
+function updateGameSelect() {
+  const select = document.getElementById('gameSelect');
+  const existingGames = [...new Set(state.records.map(r => r.game))];
+  const defaultGames = ['原神', '星鐵', '鳴潮', '絕區零', '異環', '終末地'];
+  
+  const allGames = [...new Set([...defaultGames, ...existingGames, ...state.customGames])];
+
+  select.innerHTML = allGames.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('') + 
+                     `<option value="自訂...">自訂...</option>`;
+}
+
+/* --- 動態聯動卡池選單 --- */
+function updatePoolSelect(gameName) {
+  const poolSelect = document.getElementById('poolSelect');
+  
+  let pools = ['限定', '常駐', '武器'];
+  
+  if (gameName.includes('原神')) {
+    pools = ['限定', '常駐', '武器'];
+  } else if (gameName.includes('星鐵') || gameName.includes('星穹')) {
+    pools = ['限定', '常駐', '光錐'];
+  } else if (gameName.includes('絕區') || gameName.includes('ZZZ')) {
+    pools = ['限定', '常駐', '音擎'];
+  } else if (gameName.includes('異環')) {
+    pools = ['限定', '常駐', '弧盤'];
+  } else if (gameName.includes('鳴潮')) {
+    pools = ['限定', '常駐', '武器'];
+  } else if (gameName.includes('終末地') || gameName.includes('终末地')) {
+    pools = ['定向尋訪', '常駐尋訪', '軍械交換'];
+  }
+  
+  poolSelect.innerHTML = pools.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('') + 
+                         `<option value="自定義...">自定義...</option>`;
+}
+
+document.getElementById('gameSelect').addEventListener('change', (e) => {
+  let gameVal = e.target.value;
+  
+  if (gameVal === '自訂...') {
+    const customGame = prompt('請輸入新遊戲名稱：');
+    if (customGame && customGame.trim()) {
+      gameVal = customGame.trim();
+      if (!state.customGames.includes(gameVal)) {
+        state.customGames.push(gameVal);
+        save();
+      }
+      updateGameSelect();
+      document.getElementById('gameSelect').value = gameVal;
+    } else {
+      gameVal = document.getElementById('gameSelect').options[0].value;
+      document.getElementById('gameSelect').value = gameVal;
+    }
+  }
+  updatePoolSelect(gameVal);
+});
+
 
 function render(){
   const toolbar = document.getElementById('toolbarActions');
@@ -235,6 +369,7 @@ function render(){
     `;
   } else {
     toolbar.innerHTML = `
+      <button class="primary" id="openAddModalBtn">新增</button>
       <button class="ghost" id="startSortBtn">排序</button>
       <button class="danger" id="startDeleteBtn">删除</button>
     `;
@@ -265,14 +400,16 @@ function render(){
     return `
     <tr class="${rowClass}" data-row-id="${r.id}" ${trAttr}>
       ${dragCell}
-      <td data-act="editGame" data-id="${r.id}" class="editable-text" title="点击修改">${escapeHtml(r.game)}</td>
-      <td data-act="editPool" data-id="${r.id}" class="editable-text" title="点击修改">${escapeHtml(r.pool)}</td>
+      <td>${escapeHtml(r.game)}</td>
+      <td>${escapeHtml(r.pool)}</td>
       
       <td>
         <div class="stepper">
-          <button data-act="minusPulls" data-id="${r.id}">-</button>
+          <button class="btn-step-10" data-act="minus10Pulls" data-id="${r.id}">-10</button>
+          <button class="btn-step-1" data-act="minusPulls" data-id="${r.id}">-</button>
           <input type="number" data-field="pulls" data-id="${r.id}" value="${r.pulls}">
-          <button data-act="plusPulls" data-id="${r.id}">+</button>
+          <button class="btn-step-1" data-act="plusPulls" data-id="${r.id}">+</button>
+          <button class="btn-step-10" data-act="plus10Pulls" data-id="${r.id}">+10</button>
         </div>
       </td>
       
@@ -303,19 +440,55 @@ function render(){
   if (isSorting) initSortable();
 }
 
-/* --- 新增記錄備註字數限制 --- */
+/* --- 新增記錄彈窗邏輯 --- */
+const addModal = document.getElementById('addModal');
 const addNoteInput = document.getElementById('noteInput');
 const addNoteCharCount = document.getElementById('addNoteCharCount');
 
 addNoteInput.addEventListener('input', (e) => {
-  // 強制截斷（防某些輸入法繞過）
   if (e.target.value.length > MAX_NOTE_LENGTH) {
     e.target.value = e.target.value.slice(0, MAX_NOTE_LENGTH);
   }
   addNoteCharCount.textContent = `${e.target.value.length} / ${MAX_NOTE_LENGTH}`;
 });
 
-/* --- 彈窗備註字數限制 --- */
+document.getElementById('cancelAddBtn').onclick = () => {
+  addModal.classList.remove('active');
+};
+
+addModal.addEventListener('click', e => {
+  if (e.target === addModal) addModal.classList.remove('active');
+});
+
+document.getElementById('addRecordBtn').onclick = () => {
+  const game  = document.getElementById('gameSelect').value;
+  
+  if (game === '自訂...') {
+    alert('請先選擇或輸入遊戲名稱');
+    return;
+  }
+
+  let pool  = document.getElementById('poolSelect').value;
+  if (pool === '自定義...') {
+    const customPool = prompt('請輸入自定義卡池名稱：');
+    if (customPool === null) return;
+    pool = customPool.trim() || '未知卡池';
+  }
+
+  const note  = document.getElementById('noteInput').value.trim();
+
+  state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small', note });
+  save(); 
+  
+  updateGameSelect();
+  render();
+
+  document.getElementById('noteInput').value = '';
+  addNoteCharCount.textContent = `0 / ${MAX_NOTE_LENGTH}`;
+  addModal.classList.remove('active');
+};
+
+/* --- 備註編輯彈窗邏輯 --- */
 const noteModal = document.getElementById('noteModal');
 const modalNoteInput = document.getElementById('modalNoteInput');
 const noteCharCount = document.getElementById('noteCharCount');
@@ -439,31 +612,17 @@ function initSortable() {
   }
 }
 
-/* --- 添加記錄 --- */
-document.getElementById('addRecordBtn').onclick = () => {
-  const game  = document.getElementById('gameInput').value.trim();
-  let pool  = document.getElementById('poolSelect').value;
-  
-  if (pool === '自定义...') {
-    const custom = prompt('请输入自定义卡池名称：');
-    if (custom === null) return;
-    pool = custom.trim() || '未知卡池';
-  }
-
-  const note  = document.getElementById('noteInput').value.trim();
-  if (!game){ alert('请填游戏名'); return; }
-
-  state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small', note });
-  save(); render();
-
-  // 清空輸入框並重置字數
-  document.getElementById('noteInput').value = '';
-  addNoteCharCount.textContent = `0 / ${MAX_NOTE_LENGTH}`;
-};
-
+/* --- 頂部工具列按鈕點擊 --- */
 document.getElementById('toolbarActions').addEventListener('click', e => {
   const id = e.target.id;
-  if (id === 'startDeleteBtn') {
+  
+  if (id === 'openAddModalBtn') {
+    updateGameSelect();
+    const firstGame = document.getElementById('gameSelect').options[0].value;
+    document.getElementById('gameSelect').value = firstGame;
+    updatePoolSelect(firstGame);
+    addModal.classList.add('active');
+  } else if (id === 'startDeleteBtn') {
     isDeleting = true; isSorting = false; selectedIds.clear(); render();
   } else if (id === 'cancelDeleteBtn') {
     isDeleting = false; selectedIds.clear(); render();
@@ -500,23 +659,6 @@ document.getElementById('list').addEventListener('click', e => {
     return;
   }
 
-  const editable = e.target.closest('td[data-act="editGame"], td[data-act="editPool"]');
-  if (editable) {
-    const id = editable.dataset.id;
-    const act = editable.dataset.act;
-    const r = state.records.find(x => x.id === id);
-    if (r) {
-      if (act === 'editGame') {
-        const val = prompt('修改游戏名称：', r.game);
-        if (val && val.trim()) { r.game = val.trim(); save(); render(); }
-      } else if (act === 'editPool') {
-        const val = prompt('修改卡池名称：', r.pool);
-        if (val && val.trim()) { r.pool = val.trim(); save(); render(); }
-      }
-    }
-    return;
-  }
-
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
   const id = btn.dataset.id;
@@ -524,18 +666,21 @@ document.getElementById('list').addEventListener('click', e => {
   if (!r) return;
   const act = btn.dataset.act;
 
-  if (act === 'plusPulls') {
-    r.pulls++;
+  let changed = false;
+  const maxPity = getMaxPity(r); // 取得當前這筆記錄的上限
+
+  if (act === 'plusPulls') { r.pulls = Math.min(maxPity, r.pulls + 1); changed = true; }
+  if (act === 'minusPulls') { r.pulls = Math.max(0, r.pulls - 1); changed = true; }
+  if (act === 'plus10Pulls') { r.pulls = Math.min(maxPity, r.pulls + 10); changed = true; }
+  if (act === 'minus10Pulls') { r.pulls = Math.max(0, r.pulls - 10); changed = true; }
+
+  if (changed) {
     const input = document.querySelector(`input[data-id="${id}"][data-field="pulls"]`);
     if (input) input.value = r.pulls;
     save();
+    return;
   }
-  if (act === 'minusPulls') {
-    r.pulls = Math.max(0, r.pulls - 1);
-    const input = document.querySelector(`input[data-id="${id}"][data-field="pulls"]`);
-    if (input) input.value = r.pulls;
-    save();
-  }
+
   if (act === 'togglePity') {
     if (r.pity === 'big') {
       r.pity = 'small'; btn.className = 'btn-small-pity'; btn.textContent = '小保底';
@@ -551,13 +696,5 @@ document.getElementById('list').addEventListener('input', e => {
     const id = e.target.dataset.id;
     const r = state.records.find(x => x.id === id);
     if (r) {
-      r.pulls = Math.max(0, Number(e.target.value) || 0);
-      save(); 
-    }
-  }
-});
-
-render();
-</script>
-</body>
-</html>
+      const maxPity = getMaxPity(r);
+     
