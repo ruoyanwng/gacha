@@ -22,10 +22,13 @@
         padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
   label{display:flex;flex-direction:column;font-size:13px;gap:6px;color:#4a5162}
-  input,select,button{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;
+  
+  /* 統一輸入框樣式 */
+  input,select,button,textarea{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;
                background:#fff;color:#1f2430;appearance:none}
   select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
-  input:focus,select:focus{outline:2px solid rgba(75,110,245,.35);outline-offset:1px}
+  input:focus,select:focus,textarea:focus{outline:2px solid rgba(75,110,245,.35);outline-offset:1px}
+  
   button{cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform .05s}
   button:active{transform:scale(.97)}
   button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
@@ -41,7 +44,6 @@
   th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{font-size:12px;color:#6b7280;font-weight:600;white-space:nowrap}
   
-  /* 點擊修改的文字提示 */
   .editable-text { cursor: pointer; border-bottom: 1px dashed transparent; }
   .editable-text:hover { border-bottom-color: #aaa; color: var(--accent); }
   .editable-text:active { color: var(--accent); }
@@ -64,12 +66,14 @@
   .btn-small-pity{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
   .btn-big-pity{background:#fef3c7;color:#92400e;border-color:#fde68a;font-weight:bold;}
   
-  /* 排序按鈕樣式 */
-  .btn-move { background: #f0f2f8; color: #4a5162; border: 1px solid var(--line); min-width: 40px; padding: 6px; font-weight: bold; }
-
-  .note-input{width:100%;min-width:80px;padding:4px;border:none;background:transparent;
-              font-size:12px;color:#666;border-bottom:1px solid transparent}
-  .note-input:focus{border-bottom-color:var(--accent);outline:none;background:#f8f9fc}
+  .note-display {
+    width: 80px; max-width: 80px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    cursor: pointer; color: #666; font-size: 13px;
+    border-bottom: 1px dashed transparent; padding: 4px 0;
+  }
+  .note-display:hover { border-bottom-color: #aaa; color: var(--accent); }
+  .note-display:empty::before { content: '點擊輸入'; color: #bbb; font-style: italic; }
 
   .empty{padding:24px;text-align:center;color:#8a93a6}
 
@@ -78,6 +82,44 @@
   tr[data-act="selectRow"] input,
   tr[data-act="selectRow"] button { pointer-events: none; opacity: 0.7; }
 
+  .drag-handle {
+    cursor: grab; font-size: 22px; color: #9ca3af; text-align: center;
+    width: 30px; touch-action: none; user-select: none;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  tr.dragging { 
+    opacity: 0.9; background-color: #fff !important; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: scale(1.02); z-index: 10; position: relative;
+  }
+
+  /* 彈出視窗樣式 */
+  .modal-overlay {
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-content {
+    background: #fff; padding: 20px; border-radius: 16px; width: 100%; max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    animation: popIn 0.2s ease-out;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-content h3 { margin: 0 0 12px; font-size: 16px; color: #333; display:flex; justify-content:space-between; align-items:flex-end;}
+  .modal-content .char-count { font-size: 12px; color: #999; font-weight: normal; }
+  .modal-content textarea {
+    width: 100%; height: 120px; resize: none; margin-bottom: 16px; 
+    padding: 12px; font-size: 15px; background: #f8f9fc;
+  }
+  .modal-content .actions { justify-content: flex-end; }
+
+  /* 新增表單的標籤排版 */
+  .flex-label { display: flex; justify-content: space-between; flex-direction: row; align-items: center; margin-bottom: -2px;}
+  .flex-label span:last-child { font-size: 12px; color: #999; }
+
   @media(max-width:520px){
     body{padding:12px}
     .grid{grid-template-columns:1fr 1fr}
@@ -85,14 +127,15 @@
     .stepper button{width:26px;height:26px;}
     .stepper input{width:36px;}
     .row-actions button{min-width:56px; padding:6px 4px;}
-    .note-input{min-width:60px;}
+    .drag-handle{ width: 24px; font-size: 18px;}
+    .note-display{ width: 60px; max-width: 60px; }
   }
 </style>
 </head>
 <body>
 
 <h1>抽卡记录</h1>
-<p class="small">数据僅保存在本地。</p>
+<p class="small">数据保存在本机浏览器。</p>
 
 <div class="card">
   <h2>新增记录</h2>
@@ -109,9 +152,16 @@
         <option value="自定义...">自定义...</option>
       </select>
     </label>
-    <label style="grid-column:1/-1">备注
-      <input id="noteInput" placeholder="請輸入文本">
+    
+    <!-- 這裡加上了字數統計 -->
+    <label style="grid-column:1/-1">
+      <div class="flex-label">
+        <span>备注</span>
+        <span id="addNoteCharCount">0 / 30</span>
+      </div>
+      <input id="noteInput" placeholder="請輸入文本" maxlength="30">
     </label>
+    
   </div>
   <div class="actions" style="margin-top:10px">
     <button class="primary" id="addRecordBtn">添加记录</button>
@@ -126,8 +176,24 @@
   <div id="list"></div>
 </div>
 
+<!-- 備註編輯彈窗 -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal-content">
+    <h3>
+      編輯備註
+      <span class="char-count" id="noteCharCount">0 / 30</span>
+    </h3>
+    <textarea id="modalNoteInput" placeholder="點擊輸入詳細備註..." maxlength="30"></textarea>
+    <div class="actions">
+      <button class="ghost" id="cancelNoteBtn">取消</button>
+      <button class="primary" id="saveNoteBtn">保存</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const KEY = 'gacha_records_v2'; 
+const MAX_NOTE_LENGTH = 30;
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function escapeHtml(s){
@@ -150,10 +216,10 @@ state.records.forEach(r => {
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 
-// 模式控制：刪除模式、排序模式
 let isDeleting = false;
 let isSorting = false;
 let selectedIds = new Set();
+let editingNoteId = null;
 
 function render(){
   const toolbar = document.getElementById('toolbarActions');
@@ -192,17 +258,13 @@ function render(){
     const rowClass = isSelected ? 'selected-row' : '';
     const trAttr = isDeleting ? `data-act="selectRow" data-id="${r.id}"` : '';
 
-    // 排序模式的按鈕 (第一行不能上移，最後一行不能下移)
-    const upBtn = index > 0 ? `<button class="btn-move" data-act="moveUp" data-id="${r.id}">↑</button>` : `<button class="btn-move" disabled style="opacity:0.3;">↑</button>`;
-    const downBtn = index < state.records.length - 1 ? `<button class="btn-move" data-act="moveDown" data-id="${r.id}">↓</button>` : `<button class="btn-move" disabled style="opacity:0.3;">↓</button>`;
-
-    const actionHtml = isSorting 
-      ? `<div class="row-actions">${upBtn} ${downBtn}</div>`
-      : `<div class="row-actions"><button class="${pityBtnClass}" data-act="togglePity" data-id="${r.id}">${pityBtnText}</button></div>`;
+    const dragCell = isSorting 
+      ? `<td><div class="drag-handle" data-id="${r.id}">≡</div></td>` 
+      : '';
 
     return `
-    <tr class="${rowClass}" ${trAttr}>
-      <!-- 點擊文字可彈窗修改 -->
+    <tr class="${rowClass}" data-row-id="${r.id}" ${trAttr}>
+      ${dragCell}
       <td data-act="editGame" data-id="${r.id}" class="editable-text" title="点击修改">${escapeHtml(r.game)}</td>
       <td data-act="editPool" data-id="${r.id}" class="editable-text" title="点击修改">${escapeHtml(r.pool)}</td>
       
@@ -214,24 +276,170 @@ function render(){
         </div>
       </td>
       
-      <td>${actionHtml}</td>
+      <td>
+        <div class="row-actions">
+          <button class="${pityBtnClass}" data-act="togglePity" data-id="${r.id}">${pityBtnText}</button>
+        </div>
+      </td>
       
       <td>
-        <input class="note-input" type="text" data-field="note" data-id="${r.id}" value="${escapeHtml(r.note)}" placeholder="請輸入文本">
+        <div class="note-display" data-act="editNote" data-id="${r.id}" title="${escapeHtml(r.note)}">${escapeHtml(r.note)}</div>
       </td>
     </tr>`}).join('');
+
+  const thDrag = isSorting ? '<th style="width:30px;"></th>' : '';
 
   list.innerHTML = `
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>游戏</th><th>卡池</th><th>抽数</th><th>${isSorting ? '调整顺序' : '保底'}</th><th>备注</th>
+          ${thDrag}
+          <th>游戏</th><th>卡池</th><th>抽数</th><th>保底</th><th>备注</th>
         </tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody id="sortableTbody">${rows}</tbody>
       </table>
     </div>`;
+  
+  if (isSorting) initSortable();
 }
 
+/* --- 新增記錄備註字數限制 --- */
+const addNoteInput = document.getElementById('noteInput');
+const addNoteCharCount = document.getElementById('addNoteCharCount');
+
+addNoteInput.addEventListener('input', (e) => {
+  // 強制截斷（防某些輸入法繞過）
+  if (e.target.value.length > MAX_NOTE_LENGTH) {
+    e.target.value = e.target.value.slice(0, MAX_NOTE_LENGTH);
+  }
+  addNoteCharCount.textContent = `${e.target.value.length} / ${MAX_NOTE_LENGTH}`;
+});
+
+/* --- 彈窗備註字數限制 --- */
+const noteModal = document.getElementById('noteModal');
+const modalNoteInput = document.getElementById('modalNoteInput');
+const noteCharCount = document.getElementById('noteCharCount');
+
+modalNoteInput.addEventListener('input', (e) => {
+  if (e.target.value.length > MAX_NOTE_LENGTH) {
+    e.target.value = e.target.value.slice(0, MAX_NOTE_LENGTH);
+  }
+  noteCharCount.textContent = `${e.target.value.length} / ${MAX_NOTE_LENGTH}`;
+});
+
+function openNoteModal(id) {
+  const r = state.records.find(x => x.id === id);
+  if (!r) return;
+  editingNoteId = id;
+  modalNoteInput.value = r.note;
+  noteCharCount.textContent = `${r.note.length} / ${MAX_NOTE_LENGTH}`;
+  noteModal.classList.add('active');
+  setTimeout(() => modalNoteInput.focus(), 100); 
+}
+
+document.getElementById('cancelNoteBtn').onclick = () => {
+  noteModal.classList.remove('active');
+  editingNoteId = null;
+};
+
+document.getElementById('saveNoteBtn').onclick = () => {
+  if (editingNoteId) {
+    const r = state.records.find(x => x.id === editingNoteId);
+    if (r) {
+      r.note = modalNoteInput.value.trim();
+      save();
+      const display = document.querySelector(`.note-display[data-id="${editingNoteId}"]`);
+      if (display) {
+        display.textContent = r.note;
+        display.title = r.note;
+      }
+    }
+  }
+  noteModal.classList.remove('active');
+  editingNoteId = null;
+};
+
+noteModal.addEventListener('click', e => {
+  if (e.target === noteModal) {
+    noteModal.classList.remove('active');
+    editingNoteId = null;
+  }
+});
+
+/* --- 拖拽排序 --- */
+function initSortable() {
+  const tbody = document.getElementById('sortableTbody');
+  if (!tbody) return;
+  let draggedRow = null;
+  let rafId = null;
+
+  tbody.addEventListener('pointerdown', e => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+    
+    draggedRow = handle.closest('tr');
+    draggedRow.classList.add('dragging');
+    
+    if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
+    
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerUp);
+  });
+
+  function onPointerMove(e) {
+    if (!draggedRow) return;
+    e.preventDefault(); 
+    
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      const afterElement = getDragAfterElement(tbody, e.clientY);
+      if (afterElement == null) {
+        if (tbody.lastElementChild !== draggedRow) tbody.appendChild(draggedRow);
+      } else {
+        if (afterElement !== draggedRow.nextElementSibling) tbody.insertBefore(draggedRow, afterElement);
+      }
+      rafId = null;
+    });
+  }
+
+  function onPointerUp() {
+    if (!draggedRow) return;
+    draggedRow.classList.remove('dragging');
+    
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const newRecords = [];
+    rows.forEach(tr => {
+      const id = tr.dataset.rowId;
+      const r = state.records.find(x => x.id === id);
+      if (r) newRecords.push(r);
+    });
+    state.records = newRecords;
+    save();
+    
+    draggedRow = null;
+    if (rafId) cancelAnimationFrame(rafId);
+    
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('pointercancel', onPointerUp);
+  }
+
+  function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('tr:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+}
+
+/* --- 添加記錄 --- */
 document.getElementById('addRecordBtn').onclick = () => {
   const game  = document.getElementById('gameInput').value.trim();
   let pool  = document.getElementById('poolSelect').value;
@@ -243,13 +451,14 @@ document.getElementById('addRecordBtn').onclick = () => {
   }
 
   const note  = document.getElementById('noteInput').value.trim();
-
   if (!game){ alert('请填游戏名'); return; }
 
   state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small', note });
   save(); render();
 
+  // 清空輸入框並重置字數
   document.getElementById('noteInput').value = '';
+  addNoteCharCount.textContent = `0 / ${MAX_NOTE_LENGTH}`;
 };
 
 document.getElementById('toolbarActions').addEventListener('click', e => {
@@ -272,7 +481,6 @@ document.getElementById('toolbarActions').addEventListener('click', e => {
 });
 
 document.getElementById('list').addEventListener('click', e => {
-  // 處理多選刪除
   if (isDeleting) {
     const tr = e.target.closest('tr[data-act="selectRow"]');
     if (tr) {
@@ -280,14 +488,20 @@ document.getElementById('list').addEventListener('click', e => {
       if (selectedIds.has(id)) selectedIds.delete(id);
       else selectedIds.add(id);
       render(); 
-      return;
     }
     return; 
   }
 
-  // 點擊非按鈕區域（修改文字）
+  if (isSorting) return; 
+
+  const noteCell = e.target.closest('.note-display');
+  if (noteCell) {
+    openNoteModal(noteCell.dataset.id);
+    return;
+  }
+
   const editable = e.target.closest('td[data-act="editGame"], td[data-act="editPool"]');
-  if (editable && !isSorting) {
+  if (editable) {
     const id = editable.dataset.id;
     const act = editable.dataset.act;
     const r = state.records.find(x => x.id === id);
@@ -303,32 +517,13 @@ document.getElementById('list').addEventListener('click', e => {
     return;
   }
 
-  // 點擊按鈕
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
   const id = btn.dataset.id;
-  const rIndex = state.records.findIndex(x => x.id === id);
-  if (rIndex === -1) return;
-  const r = state.records[rIndex];
+  const r  = state.records.find(x => x.id === id);
+  if (!r) return;
   const act = btn.dataset.act;
 
-  // 排序邏輯
-  if (act === 'moveUp' && rIndex > 0) {
-    const temp = state.records[rIndex];
-    state.records[rIndex] = state.records[rIndex - 1];
-    state.records[rIndex - 1] = temp;
-    save(); render(); return;
-  }
-  if (act === 'moveDown' && rIndex < state.records.length - 1) {
-    const temp = state.records[rIndex];
-    state.records[rIndex] = state.records[rIndex + 1];
-    state.records[rIndex + 1] = temp;
-    save(); render(); return;
-  }
-
-  if (isSorting) return; // 排序模式下不處理其他按鈕
-
-  // 加減抽數局部更新
   if (act === 'plusPulls') {
     r.pulls++;
     const input = document.querySelector(`input[data-id="${id}"][data-field="pulls"]`);
@@ -341,33 +536,22 @@ document.getElementById('list').addEventListener('click', e => {
     if (input) input.value = r.pulls;
     save();
   }
-
-  // 切換保底
   if (act === 'togglePity') {
     if (r.pity === 'big') {
-      r.pity = 'small';
-      btn.className = 'btn-small-pity';
-      btn.textContent = '小保底';
+      r.pity = 'small'; btn.className = 'btn-small-pity'; btn.textContent = '小保底';
     } else {
-      r.pity = 'big';
-      btn.className = 'btn-big-pity';
-      btn.textContent = '大保底';
+      r.pity = 'big'; btn.className = 'btn-big-pity'; btn.textContent = '大保底';
     }
     save(); 
   }
 });
 
 document.getElementById('list').addEventListener('input', e => {
-  if (e.target.tagName === 'INPUT' && e.target.dataset.field) {
+  if (e.target.tagName === 'INPUT' && e.target.dataset.field === 'pulls') {
     const id = e.target.dataset.id;
-    const field = e.target.dataset.field;
     const r = state.records.find(x => x.id === id);
     if (r) {
-      if (field === 'pulls') {
-        r[field] = Math.max(0, Number(e.target.value) || 0);
-      } else {
-        r[field] = e.target.value;
-      }
+      r.pulls = Math.max(0, Number(e.target.value) || 0);
       save(); 
     }
   }
