@@ -669,6 +669,7 @@ document.getElementById('list').addEventListener('click', e => {
   let changed = false;
   const maxPity = getMaxPity(r); // 取得當前這筆記錄的上限
 
+  // 按鈕加減時，套用上限封頂
   if (act === 'plusPulls') { r.pulls = Math.min(maxPity, r.pulls + 1); changed = true; }
   if (act === 'minusPulls') { r.pulls = Math.max(0, r.pulls - 1); changed = true; }
   if (act === 'plus10Pulls') { r.pulls = Math.min(maxPity, r.pulls + 10); changed = true; }
@@ -697,4 +698,19 @@ document.getElementById('list').addEventListener('input', e => {
     const r = state.records.find(x => x.id === id);
     if (r) {
       const maxPity = getMaxPity(r);
-     
+      // 手動輸入時，如果超過上限，自動截斷
+      const val = Math.max(0, Number(e.target.value) || 0);
+      r.pulls = Math.min(maxPity, val);
+      e.target.value = r.pulls; 
+      save(); 
+    }
+  }
+});
+
+// 初始化
+updateGameSelect();
+updatePoolSelect(document.getElementById('gameSelect').options[0].value);
+render();
+</script>
+</body>
+</html>
