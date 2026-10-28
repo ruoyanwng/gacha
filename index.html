@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>抽卡记录</title>
+<meta name="theme-color" content="#4b6ef5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="抽卡">
+<style>
+  :root{--bg:#f6f7fb;--card:#fff;--line:#e3e5ec;--accent:#4b6ef5;--danger:#c0392b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));
+       font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:var(--bg);color:#1f2430;font-size:15px;line-height:1.5}
+  h1{font-size:20px;margin:0 0 6px}
+  h2{font-size:16px;margin:0 0 10px}
+  .small{font-size:12px;color:#6b7280}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  label{display:flex;flex-direction:column;font-size:13px;gap:6px;color:#4a5162}
+  input,select,button{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;
+               background:#fff;color:#1f2430;appearance:none}
+  select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+  input:focus,select:focus{outline:2px solid rgba(75,110,245,.35);outline-offset:1px}
+  button{cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform .05s}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  button.danger{background:#fff5f4;color:var(--danger);border-color:#f5c9c2}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .toolbar-actions{display:flex;gap:8px}
+  
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:460px;}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{font-size:12px;color:#6b7280;font-weight:600;white-space:nowrap}
+  
+  .stepper{display:flex;align-items:center;gap:2px}
+  .stepper button{padding:0;width:28px;height:28px;display:flex;justify-content:center;align-items:center;
+                  border-radius:6px;background:#f0f2f8;border:1px solid var(--line);font-weight:bold;color:#4a5162}
+  .stepper button:active{background:#e2e5ef}
+  .stepper input{width:46px;text-align:center;padding:4px;border:none;background:transparent;
+                 font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px solid transparent}
+  .stepper input:focus{border-bottom-color:var(--accent);outline:none;background:#f8f9fc}
+  
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .row-actions button{padding:6px 10px;font-size:12px;border-radius:8px;min-width:65px;text-align:center;white-space:nowrap;}
+  
+  .btn-small-pity{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+  .btn-big-pity{background:#fef3c7;color:#92400e;border-color:#fde68a;font-weight:bold;}
+  
+  .note-input{width:100%;min-width:80px;padding:4px;border:none;background:transparent;
+              font-size:12px;color:#666;border-bottom:1px solid transparent}
+  .note-input:focus{border-bottom-color:var(--accent);outline:none;background:#f8f9fc}
+
+  .empty{padding:24px;text-align:center;color:#8a93a6}
+
+  tr.selected-row { background-color: #fff0f0 !important; }
+  tr.selected-row td { color: #c0392b; }
+  tr[data-act="selectRow"] input,
+  tr[data-act="selectRow"] button { pointer-events: none; opacity: 0.7; }
+
+  @media(max-width:520px){
+    body{padding:12px}
+    .grid{grid-template-columns:1fr 1fr}
+    th,td{padding:8px 4px;font-size:13px}
+    .stepper button{width:26px;height:26px;}
+    .stepper input{width:36px;}
+    .row-actions button{min-width:56px; padding:6px 4px;}
+    .note-input{min-width:60px;}
+  }
+</style>
+</head>
+<body>
+
+<h1>抽卡记录</h1>
+<p class="small">数据保存在本机浏览器。</p>
+
+<div class="card">
+  <h2>新增记录</h2>
+  <div class="grid">
+    <label>游戏
+      <input id="gameInput" placeholder="請輸入文本">
+    </label>
+    <label>卡池
+      <select id="poolSelect">
+        <option value="限定">限定</option>
+        <option value="常驻">常驻</option>
+        <option value="武器/光锥">武器/光锥</option>
+        <option value="联动">联动</option>
+        <option value="自定义...">自定义...</option>
+      </select>
+    </label>
+    <label style="grid-column:1/-1">备注
+      <input id="noteInput" placeholder="請輸入文本">
+    </label>
+  </div>
+  <div class="actions" style="margin-top:10px">
+    <button class="primary" id="addRecordBtn">添加记录</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="toolbar">
+    <h2 style="margin:0">记录</h2>
+    <div class="toolbar-actions" id="toolbarActions"></div>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>
+// 更換了 Key 的名稱，舊數據會自動清空
+const KEY = 'gacha_records_v2'; 
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch(e){ state = null; }
+if (!state || !Array.isArray(state.records)) {
+  state = { games: [], records: [] };
+}
+state.records.forEach(r => {
+  if (!r.id) r.id = uid();
+  r.pulls = Number(r.pulls) || 0;
+  if (typeof r.note !== 'string') r.note = '';
+  if (!r.pity || r.pity === 'none') r.pity = 'small';
+});
+
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+let isDeleting = false;
+let selectedIds = new Set();
+
+function render(){
+  const toolbar = document.getElementById('toolbarActions');
+  if (isDeleting) {
+    toolbar.innerHTML = `
+      <button class="danger" id="doDeleteBtn">删除选中 (${selectedIds.size})</button>
+      <button id="cancelDeleteBtn">取消</button>
+    `;
+  } else {
+    toolbar.innerHTML = `<button class="danger" id="startDeleteBtn">删除</button>`;
+  }
+
+  const list = document.getElementById('list');
+  if (!state.records.length){
+    list.innerHTML = '<div class="empty">暂无记录</div>';
+    return;
+  }
+
+  const rows = state.records.map(r => {
+    let pityBtnClass = 'btn-small-pity';
+    let pityBtnText = '小保底';
+    if (r.pity === 'big') { 
+      pityBtnClass = 'btn-big-pity'; 
+      pityBtnText = '大保底'; 
+    }
+
+    const isSelected = selectedIds.has(r.id);
+    const rowClass = isSelected ? 'selected-row' : '';
+    const trAttr = isDeleting ? `data-act="selectRow" data-id="${r.id}"` : '';
+
+    return `
+    <tr class="${rowClass}" ${trAttr}>
+      <td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(r.game)}">${escapeHtml(r.game)}</td>
+      <td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(r.pool)}">${escapeHtml(r.pool)}</td>
+      
+      <td>
+        <div class="stepper">
+          <button data-act="minusPulls" data-id="${r.id}">-</button>
+          <input type="number" data-field="pulls" data-id="${r.id}" value="${r.pulls}">
+          <button data-act="plusPulls" data-id="${r.id}">+</button>
+        </div>
+      </td>
+      
+      <td>
+        <div class="row-actions">
+          <button class="${pityBtnClass}" data-act="togglePity" data-id="${r.id}">${pityBtnText}</button>
+        </div>
+      </td>
+      
+      <td>
+        <input class="note-input" type="text" data-field="note" data-id="${r.id}" value="${escapeHtml(r.note)}" placeholder="請輸入文本">
+      </td>
+    </tr>`}).join('');
+
+  list.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>游戏</th><th>卡池</th><th>抽数</th><th>保底</th><th>备注</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+document.getElementById('addRecordBtn').onclick = () => {
+  const game  = document.getElementById('gameInput').value.trim();
+  let pool  = document.getElementById('poolSelect').value;
+  
+  if (pool === '自定义...') {
+    const custom = prompt('请输入自定义卡池名称：');
+    if (custom === null) return;
+    pool = custom.trim() || '未知卡池';
+  }
+
+  const note  = document.getElementById('noteInput').value.trim();
+
+  if (!game){ alert('请填游戏名'); return; }
+
+  // 新增時抽數固定從 0 開始
+  state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small', note });
+  save(); render();
+
+  document.getElementById('noteInput').value = '';
+};
+
+document.getElementById('toolbarActions').addEventListener('click', e => {
+  const id = e.target.id;
+  if (id === 'startDeleteBtn') {
+    isDeleting = true;
+    selectedIds.clear();
+    render();
+  } else if (id === 'cancelDeleteBtn') {
+    isDeleting = false;
+    selectedIds.clear();
+    render();
+  } else if (id === 'doDeleteBtn') {
+    if (selectedIds.size === 0) {
+      alert('请先点击列表选择要删除的记录');
+      return;
+    }
+    if (confirm(`确定删除选中的 ${selectedIds.size} 条记录？`)) {
+      state.records = state.records.filter(r => !selectedIds.has(r.id));
+      isDeleting = false;
+      selectedIds.clear();
+      save(); render();
+    }
+  }
+});
+
+document.getElementById('list').addEventListener('click', e => {
+  if (isDeleting) {
+    const tr = e.target.closest('tr[data-act="selectRow"]');
+    if (tr) {
+      const id = tr.dataset.id;
+      if (selectedIds.has(id)) selectedIds.delete(id);
+      else selectedIds.add(id);
+      render(); 
+      return;
+    }
+    return; 
+  }
+
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const r  = state.records.find(x => x.id === id);
+  if (!r) return;
+  const act = btn.dataset.act;
+
+  if (act === 'plusPulls') {
+    r.pulls++;
+    const input = document.querySelector(`input[data-id="${id}"][data-field="pulls"]`);
+    if (input) input.value = r.pulls;
+    save();
+  }
+  if (act === 'minusPulls') {
+    r.pulls = Math.max(0, r.pulls - 1);
+    const input = document.querySelector(`input[data-id="${id}"][data-field="pulls"]`);
+    if (input) input.value = r.pulls;
+    save();
+  }
+
+  if (act === 'togglePity') {
+    if (r.pity === 'big') {
+      r.pity = 'small';
+      btn.className = 'btn-small-pity';
+      btn.textContent = '小保底';
+    } else {
+      r.pity = 'big';
+      btn.className = 'btn-big-pity';
+      btn.textContent = '大保底';
+    }
+    save(); 
+  }
+});
+
+document.getElementById('list').addEventListener('input', e => {
+  if (e.target.tagName === 'INPUT' && e.target.dataset.field) {
+    const id = e.target.dataset.id;
+    const field = e.target.dataset.field;
+    const r = state.records.find(x => x.id === id);
+    if (r) {
+      if (field === 'pulls') {
+        r[field] = Math.max(0, Number(e.target.value) || 0);
+      } else {
+        r[field] = e.target.value;
+      }
+      save(); 
+    }
+  }
+});
+
+render();
+</script>
+</body>
+</html>
