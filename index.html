@@ -142,6 +142,21 @@
   .flex-label { display: flex; justify-content: space-between; flex-direction: row; align-items: center; margin-bottom: -2px;}
   .flex-label span:last-child { font-size: 12px; color: var(--text-muted); }
 
+  /* 新增：折疊面板的動畫樣式 */
+  .collapse-area {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, margin 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 0;
+  }
+  .collapse-area.open {
+    max-height: 300px; /* 足夠容納輸入框和按鈕 */
+    opacity: 1;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
+  }
+
   @media(max-width:520px){
     body{padding:12px}
     .grid{grid-template-columns:1fr 1fr}
@@ -217,17 +232,19 @@
   </div>
 </div>
 
-<!-- 備份恢復彈窗 (全新排版) -->
+<!-- 備份恢復彈窗 (折疊面板版) -->
 <div class="modal-overlay" id="backupModal">
   <div class="modal-content">
     <h3 style="margin-bottom:16px;">數據備份與恢復</h3>
     
-    <div style="margin-bottom:20px;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
       <button class="primary" id="doBackupBtn" style="width:100%">📤 複製備份碼</button>
+      <button class="ghost" id="toggleRestoreBtn" style="width:100%">📥 恢復數據</button>
     </div>
 
-    <div style="border-top:1px dashed var(--line); padding-top:16px;">
-      <p style="font-size:12px; color:var(--text-muted); margin-top:0; margin-bottom:8px;">若要恢復數據，請將備份碼粘貼至此：</p>
+    <!-- 折疊展開區域 -->
+    <div class="collapse-area" id="restoreArea">
+      <p style="font-size:12px; color:var(--text-muted); margin-top:0; margin-bottom:8px;">請將備份碼粘貼至此：</p>
       <textarea id="restoreInput" placeholder="請在此處長按粘貼..." style="height:100px; margin-bottom:10px;"></textarea>
       <button class="danger" id="doRestoreBtn" style="width:100%">確認覆蓋並恢復</button>
     </div>
@@ -460,13 +477,25 @@ function render(){
   if (isSorting) initSortable();
 }
 
-/* --- 備份與恢復邏輯 --- */
+/* --- 備份與恢復邏輯 (折疊版) --- */
 const backupModal = document.getElementById('backupModal');
 const restoreInput = document.getElementById('restoreInput');
+const restoreArea = document.getElementById('restoreArea');
 
 document.getElementById('backupBtn').onclick = () => {
   backupModal.classList.add('active');
-  restoreInput.value = ''; // 每次打開清空上次的內容
+  // 每次打開時，收起恢復區域並清空輸入框
+  restoreArea.classList.remove('open');
+  restoreInput.value = '';
+};
+
+// 點擊展開/收起恢復區域
+document.getElementById('toggleRestoreBtn').onclick = () => {
+  restoreArea.classList.toggle('open');
+  if (restoreArea.classList.contains('open')) {
+    // 展開後延遲一下聚焦，避免手機鍵盤彈太快卡頓
+    setTimeout(() => restoreInput.focus(), 300);
+  }
 };
 
 document.getElementById('cancelBackupBtn').onclick = () => {
