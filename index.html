@@ -65,13 +65,11 @@
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .toolbar-actions{display:flex;gap:8px}
   
-  /* 移除強制寬度，讓表格自適應手機 */
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;font-size:14px;}
   th,td{padding:10px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{font-size:12px;color:var(--text-muted);font-weight:600;white-space:nowrap}
   
-  /* 按鈕保持原本大小 */
   .stepper{display:flex;align-items:center;gap:2px}
   .stepper button{padding:0;height:28px;display:flex;justify-content:center;align-items:center;
                   border-radius:6px;background:var(--stepper-btn);border:1px solid var(--line);font-weight:bold;color:var(--text-muted);}
@@ -87,7 +85,6 @@
   input[type="number"] { -moz-appearance: textfield; }
 
   .row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  /* 保底按鈕字數變少，調整最小寬度 */
   .row-actions button{padding:6px 0;font-size:13px;border-radius:8px;min-width:36px;text-align:center;white-space:nowrap;}
   
   .btn-small-pity{background:var(--pity-small-bg);color:var(--pity-small-text);border-color:var(--pity-small-line);}
@@ -162,7 +159,7 @@
     <button class="icon-btn" id="themeToggle" title="切換夜間模式">🌙</button>
   </div>
 </div>
-<p class="small">⚠️ 數據存在當前設備瀏覽器。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
+<p class="small">⚠️ 數據存當前設備瀏覽器。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
 
 <div class="card">
   <div class="toolbar">
@@ -274,17 +271,21 @@ function getMaxPity(r) {
   const gameName = r.game || '';
   const poolName = r.pool || '';
 
+  // 1. 終末地
   if (gameName.includes('終末地') || gameName.includes('终末地')) {
-    if (poolName.includes('军械') || poolName.includes('軍械') || poolName.includes('武器') || poolName.includes('武装') || poolName.includes('武裝')) {
+    if (poolName.includes('军械') || poolName.includes('軍械') || poolName.includes('武器')) {
       return 80; 
     }
     return 120; 
   }
 
+  // 2. 鳴潮
   if (gameName.includes('鳴潮') || gameName.includes('鸣潮')) {
     return 80; 
   }
 
+  // 3. 其他遊戲（包含角色、常駐、聯動角色等，上限90）
+  // 4. 其他遊戲的專屬武器（上限80）
   const isWeapon = ['武器', '光錐', '光锥', '音擎', '弧盤', '弧盘'].some(w => poolName.includes(w));
   if (isWeapon) {
     return 80; 
@@ -297,8 +298,9 @@ function getMaxPity(r) {
 function updateGameSelect() {
   const select = document.getElementById('gameSelect');
   const existingGames = [...new Set(state.records.map(r => r.game))];
-  const defaultGames = ['原神', '星鐵', '鳴潮', '絕區零', '異環', '終末地'];
+  const defaultGames = ['原神', '崩壞:星穹鐵道', '絕區零', '鳴潮', '終末地', '異環'];
   
+  // 把預設遊戲、歷史記錄中出現的遊戲、自訂遊戲合併去重
   const allGames = [...new Set([...defaultGames, ...existingGames, ...state.customGames])];
 
   select.innerHTML = allGames.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('') + 
@@ -309,20 +311,21 @@ function updateGameSelect() {
 function updatePoolSelect(gameName) {
   const poolSelect = document.getElementById('poolSelect');
   
-  let pools = ['限定', '常駐', '武器'];
+  // 默認通用順序
+  let pools = ['角色', '武器', '常駐'];
   
   if (gameName.includes('原神')) {
-    pools = ['限定', '常駐', '武器'];
+    pools = ['角色', '武器', '常駐'];
   } else if (gameName.includes('星鐵') || gameName.includes('星穹')) {
-    pools = ['限定', '常駐', '光錐'];
+    pools = ['角色', '光錐', '常駐', '聯動角色', '聯動光錐'];
   } else if (gameName.includes('絕區') || gameName.includes('ZZZ')) {
-    pools = ['限定', '常駐', '音擎'];
+    pools = ['角色', '音擎', '常駐'];
   } else if (gameName.includes('異環')) {
-    pools = ['限定', '常駐', '弧盤'];
+    pools = ['角色', '弧盤', '常駐'];
   } else if (gameName.includes('鳴潮')) {
-    pools = ['限定', '常駐', '武器'];
+    pools = ['角色', '武器', '常駐角色', '常駐武器'];
   } else if (gameName.includes('終末地') || gameName.includes('终末地')) {
-    pools = ['定向尋訪', '常駐尋訪', '軍械交換'];
+    pools = ['定向尋訪', '軍械交換', '常駐尋訪'];
   }
   
   poolSelect.innerHTML = pools.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('') + 
@@ -525,7 +528,6 @@ document.getElementById('addRecordBtn').onclick = () => {
     pool = customPool.trim() || '未知卡池';
   }
 
-  // 移除了 note 參數
   state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small' });
   save(); 
   
