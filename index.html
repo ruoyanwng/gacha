@@ -510,7 +510,7 @@ document.getElementById('doBackupBtn').onclick = async () => {
   const backupStr = JSON.stringify(state);
   try {
     await navigator.clipboard.writeText(backupStr);
-    alert('✅ 備份成功！\n\n請立即打開微信或備忘錄，找個聊天框或新建一條筆記，將它【粘貼並發送】保存。\n（以後換手機或清緩存了，把這段文字複製回來貼在輸入框即可）');
+    alert('✅ 複製好啦！\n\n快貼到你的微信或者備忘錄裡存起來吧。\n（下次換手機或清緩存，把文字貼回下面的框框就能恢復了）');
     backupModal.classList.remove('active');
   } catch (err) {
     prompt('系統無法自動複製，請長按全選並複製下面的備份碼：', backupStr);
