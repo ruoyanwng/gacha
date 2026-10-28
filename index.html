@@ -9,7 +9,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="抽卡">
 <style>
-  /* --- 顏色變量：預設白天模式 --- */
   :root {
     --bg: #f6f7fb; --card: #fff; --line: #e3e5ec; --text: #1f2430;
     --text-muted: #6b7280; --accent: #4b6ef5; --accent-text: #fff;
@@ -20,7 +19,6 @@
     --pity-big-bg: #fef3c7; --pity-big-text: #92400e; --pity-big-line: #fde68a;
   }
 
-  /* --- 顏色變量：夜間模式 --- */
   body.dark-mode {
     --bg: #121212; --card: #1e1e1e; --line: #333333; --text: #e0e0e0;
     --text-muted: #888888; --accent: #6b8cff; --accent-text: #fff;
@@ -40,7 +38,8 @@
   
   .header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;}
   h1{font-size:20px;margin:0;}
-  .theme-toggle { background: var(--btn-ghost); color: var(--text); border: 1px solid var(--line); padding: 4px 10px; border-radius: 20px; font-size: 16px; }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn { background: var(--btn-ghost); color: var(--text); border: 1px solid var(--line); padding: 4px 10px; border-radius: 20px; font-size: 16px; }
   
   h2{font-size:16px;margin:0 0 10px}
   .small{font-size:12px;color:var(--text-muted); margin-top:0; margin-bottom:12px;}
@@ -160,9 +159,12 @@
 
 <div class="header-wrap">
   <h1>抽卡记录</h1>
-  <button class="theme-toggle" id="themeToggle" title="切換夜間模式">🌙</button>
+  <div class="header-actions">
+    <button class="icon-btn" id="backupBtn" title="备份与恢复">💾</button>
+    <button class="icon-btn" id="themeToggle" title="切換夜間模式">🌙</button>
+  </div>
 </div>
-<p class="small">数据保存在本机浏览器。</p>
+<p class="small">⚠️ 數據已自動保存至當前設備。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
 
 <div class="card">
   <div class="toolbar">
@@ -211,6 +213,24 @@
     <div class="actions">
       <button class="ghost" id="cancelNoteBtn">取消</button>
       <button class="primary" id="saveNoteBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 備份恢復彈窗 -->
+<div class="modal-overlay" id="backupModal">
+  <div class="modal-content">
+    <h3 style="margin-bottom:16px;">數據備份與恢復</h3>
+    <div class="actions" style="flex-direction:column; gap:12px; margin-bottom:16px;">
+      <button class="primary" id="doBackupBtn" style="width:100%">📤 複製備份碼</button>
+      <button class="ghost" id="openRestoreBtn" style="width:100%">📥 粘貼恢復數據</button>
+    </div>
+    <div id="restoreArea" style="display:none; margin-bottom:16px;">
+      <textarea id="restoreInput" placeholder="請在此處粘貼您的備份碼..." style="height:100px;"></textarea>
+      <button class="danger" id="doRestoreBtn" style="width:100%">確認覆蓋並恢復</button>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="cancelBackupBtn" style="width:100%">關閉</button>
     </div>
   </div>
 </div>
@@ -275,26 +295,23 @@ function getMaxPity(r) {
   const gameName = r.game || '';
   const poolName = r.pool || '';
 
-  // 1. 明日方舟：终末地
   if (gameName.includes('終末地') || gameName.includes('终末地')) {
     if (poolName.includes('军械') || poolName.includes('軍械') || poolName.includes('武器') || poolName.includes('武装') || poolName.includes('武裝')) {
-      return 80; // 武器大保底 80
+      return 80; 
     }
-    return 120; // 角色大保底 120
+    return 120; 
   }
 
-  // 2. 鸣潮
   if (gameName.includes('鳴潮') || gameName.includes('鸣潮')) {
-    return 80; // 鸣潮所有池子 80 保底
+    return 80; 
   }
 
-  // 3. 其他游戏
   const isWeapon = ['武器', '光錐', '光锥', '音擎', '弧盤', '弧盘'].some(w => poolName.includes(w));
   if (isWeapon) {
-    return 80; // 其他游戏武器池 80 保底
+    return 80; 
   }
   
-  return 90; // 其他游戏角色/常驻池默认 90
+  return 90; 
 }
 
 /* --- 動態渲染遊戲下拉選單 --- */
@@ -439,6 +456,76 @@ function render(){
   
   if (isSorting) initSortable();
 }
+
+/* --- 備份與恢復邏輯 --- */
+const backupModal = document.getElementById('backupModal');
+const restoreArea = document.getElementById('restoreArea');
+const restoreInput = document.getElementById('restoreInput');
+
+document.getElementById('backupBtn').onclick = () => {
+  backupModal.classList.add('active');
+  restoreArea.style.display = 'none';
+  restoreInput.value = '';
+};
+
+document.getElementById('cancelBackupBtn').onclick = () => {
+  backupModal.classList.remove('active');
+};
+
+backupModal.addEventListener('click', e => {
+  if (e.target === backupModal) backupModal.classList.remove('active');
+});
+
+document.getElementById('doBackupBtn').onclick = async () => {
+  // 將整個 state 轉成字串
+  const backupStr = JSON.stringify(state);
+  try {
+    await navigator.clipboard.writeText(backupStr);
+    alert('✅ 備份成功！\n\n請立即打開微信或備忘錄，找個聊天框或新建一條筆記，將它【粘貼並發送】保存。\n（以後換手機或清緩存了，把這段文字複製回來這裡點恢復即可）');
+    backupModal.classList.remove('active');
+  } catch (err) {
+    // 如果系統不允許直接寫入剪貼板（某些限制），則彈出讓用戶手動複製
+    prompt('系統無法自動複製，請長按全選並複製下面的備份碼：', backupStr);
+  }
+};
+
+document.getElementById('openRestoreBtn').onclick = () => {
+  restoreArea.style.display = 'block';
+  restoreInput.focus();
+};
+
+document.getElementById('doRestoreBtn').onclick = () => {
+  const str = restoreInput.value.trim();
+  if (!str) { alert('請先粘貼備份碼！'); return; }
+
+  try {
+    const parsedData = JSON.parse(str);
+    
+    // 簡單的安全檢查
+    if (!parsedData || !Array.isArray(parsedData.records)) {
+      throw new Error('格式不正確');
+    }
+
+    if (confirm('⚠️ 警告：恢復數據會【覆蓋】你當前設備上的所有記錄！確定要繼續嗎？')) {
+      state = parsedData;
+      if (!Array.isArray(state.customGames)) state.customGames = [];
+      
+      // 補全 ID
+      state.records.forEach(r => {
+        if (!r.id) r.id = uid();
+      });
+
+      save();
+      updateGameSelect();
+      render();
+      
+      alert('🎉 恢復成功！數據已全部回來。');
+      backupModal.classList.remove('active');
+    }
+  } catch (e) {
+    alert('❌ 恢復失敗！\n\n可能原因：\n1. 你複製的內容不完整（沒複製全）。\n2. 粘貼的內容不是本 App 的備份碼。\n\n請檢查後重試。');
+  }
+};
 
 /* --- 新增記錄彈窗邏輯 --- */
 const addModal = document.getElementById('addModal');
@@ -667,9 +754,8 @@ document.getElementById('list').addEventListener('click', e => {
   const act = btn.dataset.act;
 
   let changed = false;
-  const maxPity = getMaxPity(r); // 取得當前這筆記錄的上限
+  const maxPity = getMaxPity(r); 
 
-  // 按鈕加減時，套用上限封頂
   if (act === 'plusPulls') { r.pulls = Math.min(maxPity, r.pulls + 1); changed = true; }
   if (act === 'minusPulls') { r.pulls = Math.max(0, r.pulls - 1); changed = true; }
   if (act === 'plus10Pulls') { r.pulls = Math.min(maxPity, r.pulls + 10); changed = true; }
@@ -698,7 +784,6 @@ document.getElementById('list').addEventListener('input', e => {
     const r = state.records.find(x => x.id === id);
     if (r) {
       const maxPity = getMaxPity(r);
-      // 手動輸入時，如果超過上限，自動截斷
       const val = Math.max(0, Number(e.target.value) || 0);
       r.pulls = Math.min(maxPity, val);
       e.target.value = r.pulls; 
