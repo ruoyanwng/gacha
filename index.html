@@ -30,16 +30,22 @@
   button:active{transform:scale(.97)}
   button.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
   button.danger{background:#fff5f4;color:var(--danger);border-color:#f5c9c2}
+  button.ghost{background:#f0f2f8;color:#4a5162;}
   .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .toolbar-actions{display:flex;gap:8px}
   
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{width:100%;border-collapse:collapse;font-size:14px;min-width:460px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
   th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{font-size:12px;color:#6b7280;font-weight:600;white-space:nowrap}
   
+  /* 點擊修改的文字提示 */
+  .editable-text { cursor: pointer; border-bottom: 1px dashed transparent; }
+  .editable-text:hover { border-bottom-color: #aaa; color: var(--accent); }
+  .editable-text:active { color: var(--accent); }
+
   .stepper{display:flex;align-items:center;gap:2px}
   .stepper button{padding:0;width:28px;height:28px;display:flex;justify-content:center;align-items:center;
                   border-radius:6px;background:#f0f2f8;border:1px solid var(--line);font-weight:bold;color:#4a5162}
@@ -58,6 +64,9 @@
   .btn-small-pity{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
   .btn-big-pity{background:#fef3c7;color:#92400e;border-color:#fde68a;font-weight:bold;}
   
+  /* 排序按鈕樣式 */
+  .btn-move { background: #f0f2f8; color: #4a5162; border: 1px solid var(--line); min-width: 40px; padding: 6px; font-weight: bold; }
+
   .note-input{width:100%;min-width:80px;padding:4px;border:none;background:transparent;
               font-size:12px;color:#666;border-bottom:1px solid transparent}
   .note-input:focus{border-bottom-color:var(--accent);outline:none;background:#f8f9fc}
@@ -83,7 +92,7 @@
 <body>
 
 <h1>抽卡记录</h1>
-<p class="small">数据保存在本机浏览器。</p>
+<p class="small">数据僅保存在本地。</p>
 
 <div class="card">
   <h2>新增记录</h2>
@@ -118,7 +127,6 @@
 </div>
 
 <script>
-// 更換了 Key 的名稱，舊數據會自動清空
 const KEY = 'gacha_records_v2'; 
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -142,18 +150,28 @@ state.records.forEach(r => {
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 
+// 模式控制：刪除模式、排序模式
 let isDeleting = false;
+let isSorting = false;
 let selectedIds = new Set();
 
 function render(){
   const toolbar = document.getElementById('toolbarActions');
+  
   if (isDeleting) {
     toolbar.innerHTML = `
       <button class="danger" id="doDeleteBtn">删除选中 (${selectedIds.size})</button>
       <button id="cancelDeleteBtn">取消</button>
     `;
+  } else if (isSorting) {
+    toolbar.innerHTML = `
+      <button class="primary" id="finishSortBtn">完成</button>
+    `;
   } else {
-    toolbar.innerHTML = `<button class="danger" id="startDeleteBtn">删除</button>`;
+    toolbar.innerHTML = `
+      <button class="ghost" id="startSortBtn">排序</button>
+      <button class="danger" id="startDeleteBtn">删除</button>
+    `;
   }
 
   const list = document.getElementById('list');
@@ -162,7 +180,7 @@ function render(){
     return;
   }
 
-  const rows = state.records.map(r => {
+  const rows = state.records.map((r, index) => {
     let pityBtnClass = 'btn-small-pity';
     let pityBtnText = '小保底';
     if (r.pity === 'big') { 
@@ -174,10 +192,19 @@ function render(){
     const rowClass = isSelected ? 'selected-row' : '';
     const trAttr = isDeleting ? `data-act="selectRow" data-id="${r.id}"` : '';
 
+    // 排序模式的按鈕 (第一行不能上移，最後一行不能下移)
+    const upBtn = index > 0 ? `<button class="btn-move" data-act="moveUp" data-id="${r.id}">↑</button>` : `<button class="btn-move" disabled style="opacity:0.3;">↑</button>`;
+    const downBtn = index < state.records.length - 1 ? `<button class="btn-move" data-act="moveDown" data-id="${r.id}">↓</button>` : `<button class="btn-move" disabled style="opacity:0.3;">↓</button>`;
+
+    const actionHtml = isSorting 
+      ? `<div class="row-actions">${upBtn} ${downBtn}</div>`
+      : `<div class="row-actions"><button class="${pityBtnClass}" data-act="togglePity" data-id="${r.id}">${pityBtnText}</button></div>`;
+
     return `
     <tr class="${rowClass}" ${trAttr}>
-      <td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(r.game)}">${escapeHtml(r.game)}</td>
-      <td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(r.pool)}">${escapeHtml(r.pool)}</td>
+      <!-- 點擊文字可彈窗修改 -->
+      <td data-act="editGame" data-id="${r.id}" class="editable-text" title="点击修改">${escapeHtml(r.game)}</td>
+      <td data-act="editPool" data-id="${r.id}" class="editable-text" title="点击修改">${escapeHtml(r.pool)}</td>
       
       <td>
         <div class="stepper">
@@ -187,11 +214,7 @@ function render(){
         </div>
       </td>
       
-      <td>
-        <div class="row-actions">
-          <button class="${pityBtnClass}" data-act="togglePity" data-id="${r.id}">${pityBtnText}</button>
-        </div>
-      </td>
+      <td>${actionHtml}</td>
       
       <td>
         <input class="note-input" type="text" data-field="note" data-id="${r.id}" value="${escapeHtml(r.note)}" placeholder="請輸入文本">
@@ -202,7 +225,7 @@ function render(){
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>游戏</th><th>卡池</th><th>抽数</th><th>保底</th><th>备注</th>
+          <th>游戏</th><th>卡池</th><th>抽数</th><th>${isSorting ? '调整顺序' : '保底'}</th><th>备注</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -223,7 +246,6 @@ document.getElementById('addRecordBtn').onclick = () => {
 
   if (!game){ alert('请填游戏名'); return; }
 
-  // 新增時抽數固定從 0 開始
   state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small', note });
   save(); render();
 
@@ -233,28 +255,24 @@ document.getElementById('addRecordBtn').onclick = () => {
 document.getElementById('toolbarActions').addEventListener('click', e => {
   const id = e.target.id;
   if (id === 'startDeleteBtn') {
-    isDeleting = true;
-    selectedIds.clear();
-    render();
+    isDeleting = true; isSorting = false; selectedIds.clear(); render();
   } else if (id === 'cancelDeleteBtn') {
-    isDeleting = false;
-    selectedIds.clear();
-    render();
+    isDeleting = false; selectedIds.clear(); render();
   } else if (id === 'doDeleteBtn') {
-    if (selectedIds.size === 0) {
-      alert('请先点击列表选择要删除的记录');
-      return;
-    }
+    if (selectedIds.size === 0) { alert('请先点击列表选择要删除的记录'); return; }
     if (confirm(`确定删除选中的 ${selectedIds.size} 条记录？`)) {
       state.records = state.records.filter(r => !selectedIds.has(r.id));
-      isDeleting = false;
-      selectedIds.clear();
-      save(); render();
+      isDeleting = false; selectedIds.clear(); save(); render();
     }
+  } else if (id === 'startSortBtn') {
+    isSorting = true; isDeleting = false; render();
+  } else if (id === 'finishSortBtn') {
+    isSorting = false; render();
   }
 });
 
 document.getElementById('list').addEventListener('click', e => {
+  // 處理多選刪除
   if (isDeleting) {
     const tr = e.target.closest('tr[data-act="selectRow"]');
     if (tr) {
@@ -267,13 +285,50 @@ document.getElementById('list').addEventListener('click', e => {
     return; 
   }
 
+  // 點擊非按鈕區域（修改文字）
+  const editable = e.target.closest('td[data-act="editGame"], td[data-act="editPool"]');
+  if (editable && !isSorting) {
+    const id = editable.dataset.id;
+    const act = editable.dataset.act;
+    const r = state.records.find(x => x.id === id);
+    if (r) {
+      if (act === 'editGame') {
+        const val = prompt('修改游戏名称：', r.game);
+        if (val && val.trim()) { r.game = val.trim(); save(); render(); }
+      } else if (act === 'editPool') {
+        const val = prompt('修改卡池名称：', r.pool);
+        if (val && val.trim()) { r.pool = val.trim(); save(); render(); }
+      }
+    }
+    return;
+  }
+
+  // 點擊按鈕
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
   const id = btn.dataset.id;
-  const r  = state.records.find(x => x.id === id);
-  if (!r) return;
+  const rIndex = state.records.findIndex(x => x.id === id);
+  if (rIndex === -1) return;
+  const r = state.records[rIndex];
   const act = btn.dataset.act;
 
+  // 排序邏輯
+  if (act === 'moveUp' && rIndex > 0) {
+    const temp = state.records[rIndex];
+    state.records[rIndex] = state.records[rIndex - 1];
+    state.records[rIndex - 1] = temp;
+    save(); render(); return;
+  }
+  if (act === 'moveDown' && rIndex < state.records.length - 1) {
+    const temp = state.records[rIndex];
+    state.records[rIndex] = state.records[rIndex + 1];
+    state.records[rIndex + 1] = temp;
+    save(); render(); return;
+  }
+
+  if (isSorting) return; // 排序模式下不處理其他按鈕
+
+  // 加減抽數局部更新
   if (act === 'plusPulls') {
     r.pulls++;
     const input = document.querySelector(`input[data-id="${id}"][data-field="pulls"]`);
@@ -287,6 +342,7 @@ document.getElementById('list').addEventListener('click', e => {
     save();
   }
 
+  // 切換保底
   if (act === 'togglePity') {
     if (r.pity === 'big') {
       r.pity = 'small';
