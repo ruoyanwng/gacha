@@ -304,7 +304,7 @@ function updateGameSelect() {
   const allGames = [...new Set([...defaultGames, ...existingGames, ...state.customGames])];
 
   select.innerHTML = allGames.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('') + 
-                     `<option value="自訂...">自訂...</option>`;
+                     `<option value="自定義...">自定義...</option>`;
 }
 
 /* --- 動態聯動卡池選單 --- */
