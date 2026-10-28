@@ -44,7 +44,7 @@
   h2{font-size:16px;margin:0 0 10px}
   .small{font-size:12px;color:var(--text-muted); margin-top:0; margin-bottom:12px;}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
-        padding:14px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03);
+        padding:14px 10px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.03);
         transition: background-color 0.3s, border-color 0.3s;}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
   label{display:flex;flex-direction:column;font-size:13px;gap:6px;color:var(--text-muted)}
@@ -65,11 +65,13 @@
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
   .toolbar-actions{display:flex;gap:8px}
   
+  /* 移除強制寬度，讓表格自適應手機 */
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
-  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:10px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{font-size:12px;color:var(--text-muted);font-weight:600;white-space:nowrap}
   
+  /* 按鈕保持原本大小 */
   .stepper{display:flex;align-items:center;gap:2px}
   .stepper button{padding:0;height:28px;display:flex;justify-content:center;align-items:center;
                   border-radius:6px;background:var(--stepper-btn);border:1px solid var(--line);font-weight:bold;color:var(--text-muted);}
@@ -85,19 +87,11 @@
   input[type="number"] { -moz-appearance: textfield; }
 
   .row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  .row-actions button{padding:6px 10px;font-size:12px;border-radius:8px;min-width:65px;text-align:center;white-space:nowrap;}
+  /* 保底按鈕字數變少，調整最小寬度 */
+  .row-actions button{padding:6px 0;font-size:13px;border-radius:8px;min-width:36px;text-align:center;white-space:nowrap;}
   
   .btn-small-pity{background:var(--pity-small-bg);color:var(--pity-small-text);border-color:var(--pity-small-line);}
   .btn-big-pity{background:var(--pity-big-bg);color:var(--pity-big-text);border-color:var(--pity-big-line);font-weight:bold;}
-  
-  .note-display {
-    width: 70px; max-width: 70px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    cursor: pointer; color:var(--text-muted); font-size: 13px;
-    border-bottom: 1px dashed transparent; padding: 4px 0;
-  }
-  .note-display:hover { border-bottom-color: var(--text-muted); color: var(--accent); }
-  .note-display:empty::before { content: '點擊輸入'; color: var(--text-muted); opacity:0.6; font-style: italic; }
 
   .empty{padding:24px;text-align:center;color:var(--text-muted)}
 
@@ -132,17 +126,12 @@
     to { transform: scale(1); opacity: 1; }
   }
   .modal-content h3 { margin: 0 0 12px; font-size: 16px; color: var(--text); display:flex; justify-content:space-between; align-items:flex-end;}
-  .modal-content .char-count { font-size: 12px; color: var(--text-muted); font-weight: normal; }
   .modal-content textarea {
     width: 100%; height: 120px; resize: none; margin-bottom: 16px; 
     padding: 12px; font-size: 15px; background: var(--note-bg); color: var(--text); border: 1px solid var(--line);
   }
   .modal-content .actions { justify-content: flex-end; }
 
-  .flex-label { display: flex; justify-content: space-between; flex-direction: row; align-items: center; margin-bottom: -2px;}
-  .flex-label span:last-child { font-size: 12px; color: var(--text-muted); }
-
-  /* 新增：折疊面板的動畫樣式 */
   .collapse-area {
     max-height: 0;
     overflow: hidden;
@@ -150,7 +139,7 @@
     opacity: 0;
   }
   .collapse-area.open {
-    max-height: 300px; /* 足夠容納輸入框和按鈕 */
+    max-height: 400px;
     opacity: 1;
     margin-top: 16px;
     padding-top: 16px;
@@ -160,13 +149,7 @@
   @media(max-width:520px){
     body{padding:12px}
     .grid{grid-template-columns:1fr 1fr}
-    th,td{padding:8px 4px;font-size:13px}
-    .stepper button.btn-step-1 { width: 22px; height: 26px; font-size: 14px;}
-    .stepper button.btn-step-10 { width: 28px; height: 26px; font-size: 10px;}
-    .stepper input{width:32px; font-size: 13px;}
-    .row-actions button{min-width:56px; padding:6px 4px;}
-    .drag-handle{ width: 24px; font-size: 18px;}
-    .note-display{ width: 50px; max-width: 50px; }
+    th,td{padding:8px 2px;font-size:13px}
   }
 </style>
 </head>
@@ -179,7 +162,7 @@
     <button class="icon-btn" id="themeToggle" title="切換夜間模式">🌙</button>
   </div>
 </div>
-<p class="small">⚠️ 數據存當前設備瀏覽器。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
+<p class="small">⚠️ 數據存在當前設備瀏覽器。請勿清理瀏覽器緩存！如需防丟失，請點擊右上角 💾 進行備份。</p>
 
 <div class="card">
   <div class="toolbar">
@@ -193,22 +176,16 @@
 <div class="modal-overlay" id="addModal">
   <div class="modal-content">
     <h3 style="margin-bottom:16px;">新增記錄</h3>
-    <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom:16px;">
+    <div class="grid" style="grid-template-columns: 1fr; margin-bottom:16px;">
       
-      <label style="grid-column:1/-1">游戏
+      <label>游戏
         <select id="gameSelect"></select>
       </label>
       
-      <label style="grid-column:1/-1">卡池
+      <label>卡池
         <select id="poolSelect"></select>
       </label>
-      <label style="grid-column:1/-1">
-        <div class="flex-label">
-          <span>备注</span>
-          <span id="addNoteCharCount">0 / 30</span>
-        </div>
-        <input id="noteInput" placeholder="點擊輸入" maxlength="30">
-      </label>
+      
     </div>
     <div class="actions">
       <button class="ghost" id="cancelAddBtn">取消</button>
@@ -217,22 +194,7 @@
   </div>
 </div>
 
-<!-- 備註編輯彈窗 -->
-<div class="modal-overlay" id="noteModal">
-  <div class="modal-content">
-    <h3>
-      編輯備註
-      <span class="char-count" id="noteCharCount">0 / 30</span>
-    </h3>
-    <textarea id="modalNoteInput" placeholder="點擊輸入" maxlength="30"></textarea>
-    <div class="actions">
-      <button class="ghost" id="cancelNoteBtn">取消</button>
-      <button class="primary" id="saveNoteBtn">保存</button>
-    </div>
-  </div>
-</div>
-
-<!-- 備份恢復彈窗 (折疊面板版) -->
+<!-- 備份恢復彈窗 -->
 <div class="modal-overlay" id="backupModal">
   <div class="modal-content">
     <h3 style="margin-bottom:16px;">數據備份與恢復</h3>
@@ -242,7 +204,6 @@
       <button class="ghost" id="toggleRestoreBtn" style="width:100%">📥 恢復數據</button>
     </div>
 
-    <!-- 折疊展開區域 -->
     <div class="collapse-area" id="restoreArea">
       <p style="font-size:12px; color:var(--text-muted); margin-top:0; margin-bottom:8px;">請將備份碼粘貼至此：</p>
       <textarea id="restoreInput" placeholder="請在此處長按粘貼..." style="height:100px; margin-bottom:10px;"></textarea>
@@ -258,7 +219,6 @@
 <script>
 const KEY = 'gacha_records_v2'; 
 const THEME_KEY = 'gacha_theme';
-const MAX_NOTE_LENGTH = 30;
 
 /* --- 夜間模式切換邏輯 --- */
 const themeToggle = document.getElementById('themeToggle');
@@ -308,7 +268,6 @@ function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 let isDeleting = false;
 let isSorting = false;
 let selectedIds = new Set();
-let editingNoteId = null;
 
 /* --- 智能判斷保底上限 --- */
 function getMaxPity(r) {
@@ -420,10 +379,10 @@ function render(){
 
   const rows = state.records.map((r, index) => {
     let pityBtnClass = 'btn-small-pity';
-    let pityBtnText = '小保底';
+    let pityBtnText = '小';
     if (r.pity === 'big') { 
       pityBtnClass = 'btn-big-pity'; 
-      pityBtnText = '大保底'; 
+      pityBtnText = '大'; 
     }
 
     const isSelected = selectedIds.has(r.id);
@@ -455,10 +414,6 @@ function render(){
           <button class="${pityBtnClass}" data-act="togglePity" data-id="${r.id}">${pityBtnText}</button>
         </div>
       </td>
-      
-      <td>
-        <div class="note-display" data-act="editNote" data-id="${r.id}" title="${escapeHtml(r.note)}">${escapeHtml(r.note)}</div>
-      </td>
     </tr>`}).join('');
 
   const thDrag = isSorting ? '<th style="width:30px;"></th>' : '';
@@ -468,7 +423,7 @@ function render(){
       <table>
         <thead><tr>
           ${thDrag}
-          <th>游戏</th><th>卡池</th><th>抽数</th><th>保底</th><th>备注</th>
+          <th>游戏</th><th>卡池</th><th>抽数</th><th>保底</th>
         </tr></thead>
         <tbody id="sortableTbody">${rows}</tbody>
       </table>
@@ -477,23 +432,20 @@ function render(){
   if (isSorting) initSortable();
 }
 
-/* --- 備份與恢復邏輯 (折疊版) --- */
+/* --- 備份與恢復邏輯 --- */
 const backupModal = document.getElementById('backupModal');
 const restoreInput = document.getElementById('restoreInput');
 const restoreArea = document.getElementById('restoreArea');
 
 document.getElementById('backupBtn').onclick = () => {
   backupModal.classList.add('active');
-  // 每次打開時，收起恢復區域並清空輸入框
   restoreArea.classList.remove('open');
   restoreInput.value = '';
 };
 
-// 點擊展開/收起恢復區域
 document.getElementById('toggleRestoreBtn').onclick = () => {
   restoreArea.classList.toggle('open');
   if (restoreArea.classList.contains('open')) {
-    // 展開後延遲一下聚焦，避免手機鍵盤彈太快卡頓
     setTimeout(() => restoreInput.focus(), 300);
   }
 };
@@ -510,7 +462,7 @@ document.getElementById('doBackupBtn').onclick = async () => {
   const backupStr = JSON.stringify(state);
   try {
     await navigator.clipboard.writeText(backupStr);
-    alert('✅ 複製好啦！\n\n快貼到你的微信或者備忘錄裡存起來吧。\n（下次換手機或清緩存，把文字貼回下面的框框就能恢復了）');
+    alert('✅ 備份成功！\n\n請立即打開微信或備忘錄，找個聊天框或新建一條筆記，將它【粘貼並發送】保存。\n（以後換手機或清緩存了，把這段文字複製回來貼在輸入框即可）');
     backupModal.classList.remove('active');
   } catch (err) {
     prompt('系統無法自動複製，請長按全選並複製下面的備份碼：', backupStr);
@@ -523,7 +475,6 @@ document.getElementById('doRestoreBtn').onclick = () => {
 
   try {
     const parsedData = JSON.parse(str);
-    
     if (!parsedData || !Array.isArray(parsedData.records)) {
       throw new Error('格式不正確');
     }
@@ -550,15 +501,6 @@ document.getElementById('doRestoreBtn').onclick = () => {
 
 /* --- 新增記錄彈窗邏輯 --- */
 const addModal = document.getElementById('addModal');
-const addNoteInput = document.getElementById('noteInput');
-const addNoteCharCount = document.getElementById('addNoteCharCount');
-
-addNoteInput.addEventListener('input', (e) => {
-  if (e.target.value.length > MAX_NOTE_LENGTH) {
-    e.target.value = e.target.value.slice(0, MAX_NOTE_LENGTH);
-  }
-  addNoteCharCount.textContent = `${e.target.value.length} / ${MAX_NOTE_LENGTH}`;
-});
 
 document.getElementById('cancelAddBtn').onclick = () => {
   addModal.classList.remove('active');
@@ -583,69 +525,14 @@ document.getElementById('addRecordBtn').onclick = () => {
     pool = customPool.trim() || '未知卡池';
   }
 
-  const note  = document.getElementById('noteInput').value.trim();
-
-  state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small', note });
+  // 移除了 note 參數
+  state.records.push({ id: uid(), game, pool, pulls: 0, pity: 'small' });
   save(); 
   
   updateGameSelect();
   render();
-
-  document.getElementById('noteInput').value = '';
-  addNoteCharCount.textContent = `0 / ${MAX_NOTE_LENGTH}`;
   addModal.classList.remove('active');
 };
-
-/* --- 備註編輯彈窗邏輯 --- */
-const noteModal = document.getElementById('noteModal');
-const modalNoteInput = document.getElementById('modalNoteInput');
-const noteCharCount = document.getElementById('noteCharCount');
-
-modalNoteInput.addEventListener('input', (e) => {
-  if (e.target.value.length > MAX_NOTE_LENGTH) {
-    e.target.value = e.target.value.slice(0, MAX_NOTE_LENGTH);
-  }
-  noteCharCount.textContent = `${e.target.value.length} / ${MAX_NOTE_LENGTH}`;
-});
-
-function openNoteModal(id) {
-  const r = state.records.find(x => x.id === id);
-  if (!r) return;
-  editingNoteId = id;
-  modalNoteInput.value = r.note;
-  noteCharCount.textContent = `${r.note.length} / ${MAX_NOTE_LENGTH}`;
-  noteModal.classList.add('active');
-  setTimeout(() => modalNoteInput.focus(), 100); 
-}
-
-document.getElementById('cancelNoteBtn').onclick = () => {
-  noteModal.classList.remove('active');
-  editingNoteId = null;
-};
-
-document.getElementById('saveNoteBtn').onclick = () => {
-  if (editingNoteId) {
-    const r = state.records.find(x => x.id === editingNoteId);
-    if (r) {
-      r.note = modalNoteInput.value.trim();
-      save();
-      const display = document.querySelector(`.note-display[data-id="${editingNoteId}"]`);
-      if (display) {
-        display.textContent = r.note;
-        display.title = r.note;
-      }
-    }
-  }
-  noteModal.classList.remove('active');
-  editingNoteId = null;
-};
-
-noteModal.addEventListener('click', e => {
-  if (e.target === noteModal) {
-    noteModal.classList.remove('active');
-    editingNoteId = null;
-  }
-});
 
 /* --- 拖拽排序 --- */
 function initSortable() {
@@ -761,12 +648,6 @@ document.getElementById('list').addEventListener('click', e => {
 
   if (isSorting) return; 
 
-  const noteCell = e.target.closest('.note-display');
-  if (noteCell) {
-    openNoteModal(noteCell.dataset.id);
-    return;
-  }
-
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
   const id = btn.dataset.id;
@@ -791,9 +672,9 @@ document.getElementById('list').addEventListener('click', e => {
 
   if (act === 'togglePity') {
     if (r.pity === 'big') {
-      r.pity = 'small'; btn.className = 'btn-small-pity'; btn.textContent = '小保底';
+      r.pity = 'small'; btn.className = 'btn-small-pity'; btn.textContent = '小';
     } else {
-      r.pity = 'big'; btn.className = 'btn-big-pity'; btn.textContent = '大保底';
+      r.pity = 'big'; btn.className = 'btn-big-pity'; btn.textContent = '大';
     }
     save(); 
   }
